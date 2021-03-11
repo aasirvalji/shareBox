@@ -4,6 +4,9 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const app = express();
 
+//initialize request middleware
+app.use(express.json());
+
 app.get('/', (req, res) => {
   return res.status(200).sendFile('./index.html', { root: __dirname })
 });
