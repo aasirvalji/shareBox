@@ -10,7 +10,7 @@ app.get('/', (req, res) => {
   return res.status(200).sendFile('./index.html', { root: __dirname })
 });
 
-app.post('/sms', (req, res) => {
+app.get('/sms', (req, res) => {
   const twiml = new MessagingResponse();
   console.log(req.params);
   console.log(req.body);
