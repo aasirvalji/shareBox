@@ -13,6 +13,8 @@ app.get('/', (req, res) => {
 app.post('/sms', (req, res) => {
   const twiml = new MessagingResponse();
 
+  console.log(req.body);
+
   // Access the message body and the number it was sent from.
   console.log(`Incoming message from ${req.body.From}: ${req.body.Body}`);
 
