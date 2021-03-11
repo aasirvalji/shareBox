@@ -5,7 +5,7 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse;
 const app = express();
 
 app.get('/', (req, res) => {
-  return res.status(200).sendFile('./index.html');
+  return res.status(200).sendFile('./index.html', { root: __dirname })
 });
 
 app.post('/sms', (req, res) => {
