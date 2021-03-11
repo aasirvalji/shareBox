@@ -10,14 +10,14 @@ app.get('/', (req, res) => {
   return res.status(200).sendFile('./index.html', { root: __dirname })
 });
 
-app.get('/sms', (req, res) => {
+app.post('/sms', (req, res) => {
   const twiml = new MessagingResponse();
-  console.log(req.params);
-  console.log(req.body);
-  console.log(req.query);
 
-  // send xml response
+  // Access the message body and the number it was sent from.
+  console.log(`Incoming message from ${req.body.From}: ${req.body.Body}`);
+
   twiml.message('The Robots are coming! Head for the hills!');
+
   res.writeHead(200, {'Content-Type': 'text/xml'});
   res.end(twiml.toString());
 });
