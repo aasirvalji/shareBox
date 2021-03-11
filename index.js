@@ -1,4 +1,3 @@
-const http = require('http');
 const express = require('express');
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
@@ -23,8 +22,12 @@ app.post('/sms', (req, res) => {
   res.end(twiml.toString());
 });
 
+//Set server port as environment or 5000
 const PORT = process.env.PORT || 5000;
 
-http.createServer(app).listen(PORT, () => {
-  console.log('Express server listening on port 5000');
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.log(`Error: ${err.message}`);
 });
