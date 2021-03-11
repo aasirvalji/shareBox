@@ -1,10 +1,10 @@
+const http = require('http');
 const express = require('express');
+const { urlencoded } = require('body-parser');
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const app = express();
-
-//initialize request middleware
-app.use(express.json());
+app.use(urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
   return res.status(200).sendFile('./index.html', { root: __dirname })
@@ -25,7 +25,9 @@ app.get('/sms', (req, res) => {
 //Set server port as environment or 5000
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+http.createServer(app).listen(PORT, () => {
+  console.log(`Express server listening on port ${PORT}`);
+});
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
