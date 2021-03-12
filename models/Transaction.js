@@ -1,17 +1,19 @@
 const mongoose = require('mongoose');
 
 const Transaction = new mongoose.Schema({
-    room: {
+    box: {
         type: String,
         required: true
     },
     text: {
         type: String,
-        required: true
+    },
+    raw: {
+        type: String,
     },
     createdAt: {
-        type: Boolean,
-        default: false
+        type: Date,
+        default: Date.now
     }
 })
 
