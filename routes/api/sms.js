@@ -170,6 +170,148 @@ router.post('/', async (req, res) => {
       return res.end(twiml.toString());
     }
 
+    // clear all dues in box
+    else if (prefix.includes(command) && command === 'clear' && args.length === 0) {
+      var caller = await User.findOne({ number: req.body.From });
+      if (!caller) {
+        twiml.message(`I couldn't find your information. Please make sure you've initialized your phone number.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var box = await Box.findOne({ code: payer.box });
+      if (!box) {
+        twiml.message(`It looks like you're not in a box yet.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      if (box.dues.length === 0) {
+        twiml.message(`It looks like no one else has joined youe box yet. Use this code to have your friends join: ${box.code}`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var dues = [...box.dues];
+      for (var i = 0; i < dues.length; i++){
+        dues[i].amount = 0;
+      }
+
+      box.dues = dues;
+      await box.save();
+
+      twiml.message(`All dues in your box (${box.name}) have been reset.`);
+      res.writeHead(200, {'Content-Type': 'text/xml'});
+      return res.end(twiml.toString());
+    }
+
+    // clear dues with a specific person
+    else if (prefix.includes(command) && command === 'clear' && args.length === 1) {
+      var caller = await User.findOne({ number: req.body.From });
+      if (!caller) {
+        twiml.message(`I couldn't find your information. Please make sure you've initialized your phone number.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var box = await Box.findOne({ code: payer.box });
+      if (!box) {
+        twiml.message(`It looks like you're not in a box yet.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      if (box.dues.length === 0) {
+        twiml.message(`It looks like no one else has joined youe box yet. Use this code to have your friends join: ${box.code}`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var other = await User.findOne({ name: args[0], box: box.code });
+      if (!other) {
+        twiml.message(`We couldn't find that person. Please try again.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var dues = [...box.dues];
+      for (var i = 0; i < dues.length; i++){
+        if (dues[i].pair === `${caller.number}:${other.number}` || dues[i].pair === `${other.number}:${caller.number}`) {
+          dues[i].amount = 0;
+          break;
+        }
+      }
+
+      box.dues = dues;
+      await box.save();
+
+      twiml.message(`Your dues with ${other.name} have been cleared.`);
+      res.writeHead(200, {'Content-Type': 'text/xml'});
+      return res.end(twiml.toString());
+    }
+
+
+    // check how much is owed/dued by others in your box
+    else if (prefix.includes(command) && command === 'owe') {
+      var caller = await User.findOne({ number: req.body.From });
+      if (!caller) {
+        twiml.message(`I couldn't find your information. Please make sure you've initialized your phone number.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var box = await Box.findOne({ code: payer.box });
+      if (!box) {
+        twiml.message(`It looks like you're not in a box yet.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      if (box.dues.length === 0) {
+        twiml.message(`It looks like no one else has joined youe box yet. Use this code to have your friends join: ${box.code}`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var others = await User.find({ box: payer.box });
+      if (owers.length === 0) {
+        twiml.message(`It looks like you're not in a there are no other people in your box yet.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var dueStr = '';
+      var counter = 1;
+      for (var due of box.dues) {
+        if (due.pair.includes(caller.number)) {
+          // get indices of caller and other memeber in due key
+          var splitPair = due.pair.split(':');
+          var callerIndex = splitPair.findIndex((s) => s === caller.number);
+          if (callerIndex === -1) continue;
+          var otherIndex = callerIndex === 0 ? 1 : 0;
+
+          var other = others.find((o) => o.number === splitPair[otherIndex]);
+          if (!other) continue;
+
+          // cases 
+          // caller:other +amount
+          // caller:other -amount
+          // caller:other 0
+          // other:caller +amount
+          // other:amount -amount
+          // other:amount 0
+
+          if (callerIndex === 0 && due.amount > 0 || callerIndex === 1 && due.amount < 0) dueStr = `${dueStr}${counter}) ${other.name} owes you $${Math.abs(due.pair.amount)}\n`;
+          else if (callerIndex === 0 && due.amount < 0 || callerIndex === 1 && due.amount > 0) dueStr = `${dueStr}${counter}) You owe ${other.name} $${Math.abs(due.pair.amount)}\n`;
+          else dueStr = `${dueStr}${counter}) You don't owe ${other.name} anything.\n`;
+        }
+      }
+
+      twiml.message(dueStr);
+      res.writeHead(200, {'Content-Type': 'text/xml'});
+      return res.end(twiml.toString());
+    } 
+
     // checking for valid transactions
     else if (!prefix.includes(command)) {
      var splitContent = content.split(' ');
