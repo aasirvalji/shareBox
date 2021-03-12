@@ -148,7 +148,7 @@ router.post('/', async (req, res) => {
      var box;
      var ower;
      var caller;
-     if (!(/\s/.test(content)) && content.matches("[0-9]+")) { // just a number
+     if (!(/\s/.test(content)) && /^\d+$/.test(content)) { // just a number
         var rawSplit = content.split('/');
 
         var payer = await User.findOne({ number: req.body.From });
