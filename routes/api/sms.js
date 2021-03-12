@@ -194,6 +194,7 @@ router.post('/', async (req, res) => {
             transaction.text = text;
             await transaction.save();
           }
+          return;
         }
 
         await recordTransaction();
