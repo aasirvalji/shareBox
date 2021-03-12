@@ -208,17 +208,21 @@ router.post('/', async (req, res) => {
       console.log(box)
       console.log(box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`));
         var direction = 1;
-        var pair = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
 
-        if (pair === -1) {
-          pair = box.dues.findIndex((d) => d.pair === `${ower.number}:${payer.number}`);
-          direction = -1;
+        var pair = -1
+        for (var i = 0; i < box.dues.length; i++){
+          if (box.dues[i].pair === `${payer.number}:${ower.number}`) {
+            pair = i;
+            break;
+          }
+          else if (box.dues[i].pair === `${ower.number}:${payer.number}`) {
+            pair = i;
+            direction = -1;
+            break;
+          }
         }
-        else if (pair === -1) {
-          twiml.message(`Something went wrong. Please try again later.`);
-          res.writeHead(200, {'Content-Type': 'text/xml'});
-          return res.end(twiml.toString());
-        }
+
+        if (pair === -1) return console.log('Not found.');
 
         var dues = [...box.dues];
         dues[pair] = { pair: box.dues[pair].name, amount: ((box.dues[pair].amount + amount) * direction) };
