@@ -171,26 +171,26 @@ router.post('/', async (req, res) => {
           for (var ower of owers) {
             console.log(ower, payer);
             if (ower.number === payer.number) continue; // skip over themself
-            console.log(1)
+ 
             var direction = 1;
-            var pair = -1
+            var index = -1
             for (var i = 0; i < box.dues.length; i++){  
               console.log(box.dues[i].pair, `${payer.number}:${ower.number}`);
               console.log(box.dues[i].pair, `${ower.number}:${payer.number}`);
-              if (box.dues[i].pair === `${payer.number}:${ower.number}`) pair = i;
+              if (box.dues[i].pair === `${payer.number}:${ower.number}`) index = i;
               else if (box.dues[i].pair === `${ower.number}:${payer.number}`) {
-                pair = i;
+                index = i;
                 direction = -1;
               }
+
+            if (index === -1) continue;
             
-            console.log(2)
             var dues = [...box.dues];
             dues[index] = { pair: box.dues[index].pair, amount: (box.dues[index].amount + (amount * direction)) };
             box.dues = dues;
             await box.save();
-            console.log(3)
-            var transaction = await Transaction.create({ box: box.code });
 
+            var transaction = await Transaction.create({ box: box.code });
             var text = `${payer.name} payed ${amount} for ${ower.name} on ${new Date(transaction.createdAt).toLocaleString()}`;
             transaction.raw = content;
             transaction.text = text;
