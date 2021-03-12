@@ -178,7 +178,7 @@ router.post('/', async (req, res) => {
           return res.end(twiml.toString());
         }
 
-        var amount = (parseFloat(rawSplit[0]) / box.dues.length).toFixed(2);
+        var amount = (parseFloat(rawSplit[0]) / owers.length).toFixed(2);
 
         async function recordTransaction() {
           for (var ower of owers) {
