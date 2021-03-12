@@ -21,10 +21,15 @@ router.post('/', async (req, res) => {
     console.log('Content received: ' + content);
      
     var [command, ...args] = content.split(' ');
+    console.log(command, args);
     command = command.toLowerCase();
   
     if (prefix.includes(command) && command === 'init') {
-      if (args.length > 1) return res.status(400);
+      if (args.length !== 1) {
+        twiml.message(`Please enter your name with the init command.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
 
       var name = args[0].toLowerCase();
       var number = req.body.From;

@@ -1,9 +1,17 @@
 const http = require('http');
 const express = require('express');
+const connectDB = require('./config/db');
+const dotenv = require('dotenv');
 const { urlencoded } = require('body-parser');
 
 /* TODO LIST */
 // Add backup route to console incase main goes down
+
+// Load env vars
+dotenv.config();
+
+//Connect to Database
+connectDB();
 
 const app = express();
 app.use(urlencoded({ extended: false }));
