@@ -160,7 +160,7 @@ router.post('/', async (req, res) => {
           return res.end(twiml.toString());
         }
 
-        var owers = await Box.find({ code: payer.box });
+        var owers = await User.find({ box: payer.box });
         if (owers.length === 0) {
           twiml.message(`It looks like you're not in a there are no other people in your box yet.`);
           res.writeHead(200, {'Content-Type': 'text/xml'});
