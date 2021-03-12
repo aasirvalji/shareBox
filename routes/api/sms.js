@@ -142,9 +142,68 @@ router.post('/', async (req, res) => {
      var box;
      var ower;
      var caller;
+     if (/\s/.test(content) && content.includes('/')) {
+        var rawSplit = content.split('/');
+        var amount = (parseFloat(rawSplit[0]) / parseFloat(rawSplit[1])).toFixed(2);
 
+        var payer = await User.findOne({ number: req.body.From });
+        if (!payer) {
+          twiml.message(`I couldn't find your information. Please make sure you've initialized your phone number.`);
+          res.writeHead(200, {'Content-Type': 'text/xml'});
+          return res.end(twiml.toString());
+        }
+
+        var box = await Box.findOne({ code: payer.box });
+        if (!box) {
+          twiml.message(`It looks like you're not in a box yet.`);
+          res.writeHead(200, {'Content-Type': 'text/xml'});
+          return res.end(twiml.toString());
+        }
+
+        var owers = await Box.find({ code: payer.box });
+        if (owers.length === 0) {
+          twiml.message(`It looks like you're not in a there are no other people in your box yet.`);
+          res.writeHead(200, {'Content-Type': 'text/xml'});
+          return res.end(twiml.toString());
+        }
+
+        async function recordTransaction() {
+          for (var ower of owers) {
+            if (ower.number === payer.number) continue; // skip over themself
+
+            var direction = 1;
+            var index = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
+            if (index === -1) {
+              index = box.dues.findIndex((d) => d.pair === `${ower.number}:${payer.number}`);
+              direction = -1;
+            }
+            if (index === -1) {
+              console.log('Skipping');
+              continue;
+            }
+
+            var dues = [...box.dues];
+            dues[index] = { pair: box.dues[index].pair, amount: (box.dues[index].amount + (amount * direction)) };
+            box.dues = dues;
+            await box.save();
+
+            var transaction = await Transaction.create({ box: box.code });
+
+            var text = `${payer.name} payed ${amount} for ${ower.name} on ${new Date(transaction.createdAt).toLocaleString()}`;
+            transaction.raw = content;
+            transaction.text = text;
+            await transaction.save();
+          }
+        }
+
+        await recordTransaction();
+
+        twiml.message(`Transaction recorded.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+     }
       // 2 args transaction - To name:amount
-      if (splitContent.length === 2) {
+      else if (splitContent.length === 2) {
         var amount = parseFloat(splitContent[1]).toFixed(2);
     
         var payer = await User.findOne({ number: req.body.From });
@@ -205,8 +264,7 @@ router.post('/', async (req, res) => {
       console.log(payer);
       console.log('OWER: ');
       console.log(ower);
-      console.log(box)
-      console.log(box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`));
+
         var direction = 1;
 
         var pair = -1
