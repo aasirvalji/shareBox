@@ -98,7 +98,7 @@ router.post('/', async (req, res) => {
         res.writeHead(200, {'Content-Type': 'text/xml'});
         return res.end(twiml.toString());
       }
-
+      
       // if admin, return
 
       // create nodes from everyone that already exists to this new user
@@ -124,6 +124,9 @@ router.post('/', async (req, res) => {
 
       box.dues = [...box.dues, ...newDues];
       await box.save();
+
+      user.box = box.code;
+      await user.save();
 
       // return success message back to user
       twiml.message(`You've successfully joined ${box.name}.`);
