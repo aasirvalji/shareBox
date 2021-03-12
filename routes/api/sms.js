@@ -205,22 +205,21 @@ router.post('/', async (req, res) => {
       console.log(payer);
       console.log('OWER: ');
       console.log(ower);
-
+      console.log(box)
+      console.log(box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`));
         var direction = 1;
         var pair = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
-        console.log(pair)
+
         if (pair === -1) {
           pair = box.dues.findIndex((d) => d.pair === `${ower.number}:${payer.number}`);
           direction = -1;
-          console.log(pair)
         }
         else if (pair === -1) {
           twiml.message(`Something went wrong. Please try again later.`);
           res.writeHead(200, {'Content-Type': 'text/xml'});
           return res.end(twiml.toString());
-          console.log(pair)
         }
-        console.log(pair)
+
         var dues = [...box.dues];
         dues[pair] = { pair: box.dues[pair].name, amount: ((box.dues[pair].amount + amount) * direction) };
         box.dues = dues;
@@ -228,7 +227,7 @@ router.post('/', async (req, res) => {
 
         var transaction = await Transaction.create({ box: box.code });
 
-        var text = `${payer.name} payed ${amount} for ${ower} on ${new Date(transaction.createdAt).toLocaleString()}`;
+        var text = `${payer.name} payed ${amount} for ${ower.name} on ${new Date(transaction.createdAt).toLocaleString()}`;
         transaction.raw = content;
         transaction.text = text;
         await transaction.save();
