@@ -208,14 +208,17 @@ router.post('/', async (req, res) => {
 
         var direction = 1;
         var pair = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
-        if (!pair || pair === -1) {
+        console.log(pair)
+        if (pair === -1) {
           pair = box.dues.findIndex((d) => d.pair === `${ower.number}:${payer.number}`);
           direction = -1;
+          console.log(pair)
         }
-        else if (!pair || pair === -1) {
+        else if (pair === -1) {
           twiml.message(`Something went wrong. Please try again later.`);
           res.writeHead(200, {'Content-Type': 'text/xml'});
           return res.end(twiml.toString());
+          console.log(pair)
         }
         console.log(pair)
         var dues = [...box.dues];
