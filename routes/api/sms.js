@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
   
     if (prefix.includes(command) && command === 'init') {
       if (args.length !== 1) {
-        twiml.message(`Please enter your name with the init command.`);
+        twiml.message(`Please enter your nickname with the init command.`);
         res.writeHead(200, {'Content-Type': 'text/xml'});
         return res.end(twiml.toString());
       }
@@ -48,6 +48,12 @@ router.post('/', async (req, res) => {
       return res.end(twiml.toString());
     }
     else if (prefix.includes(command) && command === 'setup') {
+      if (args.length !== 1) {
+        twiml.message(`Please enter your box name with the init command.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
       // get vals
       var name = args[0].toLowerCase();
       var number = req.body.From;
@@ -142,9 +148,8 @@ router.post('/', async (req, res) => {
      var box;
      var ower;
      var caller;
-     if (!(/\s/.test(content)) && content.includes('/')) {
+     if (!(/\s/.test(content)) && content.matches("[0-9]+")) { // just a number
         var rawSplit = content.split('/');
-        var amount = (parseFloat(rawSplit[0]) / parseFloat(rawSplit[1])).toFixed(2);
 
         var payer = await User.findOne({ number: req.body.From });
         if (!payer) {
@@ -160,6 +165,12 @@ router.post('/', async (req, res) => {
           return res.end(twiml.toString());
         }
 
+        if (box.dues.length === 0) {
+          twiml.message(`It looks like no one else has joined youe box yet. Use this code to have your friends join: ${box.code}`);
+          res.writeHead(200, {'Content-Type': 'text/xml'});
+          return res.end(twiml.toString());
+        }
+
         var owers = await User.find({ box: payer.box });
         if (owers.length === 0) {
           twiml.message(`It looks like you're not in a there are no other people in your box yet.`);
@@ -167,23 +178,27 @@ router.post('/', async (req, res) => {
           return res.end(twiml.toString());
         }
 
+        var amount = (parseFloat(rawSplit[0]) / box.dues.length).toFixed(2);
+
         async function recordTransaction() {
           for (var ower of owers) {
-            console.log(ower, payer);
             if (ower.number === payer.number) continue; // skip over themself
  
             var direction = 1;
             var index = -1
             for (var i = 0; i < box.dues.length; i++){  
-              console.log(box.dues[i].pair, `${payer.number}:${ower.number}`);
-              console.log(box.dues[i].pair, `${ower.number}:${payer.number}`);
+              // console.log(box.dues[i].pair, `${payer.number}:${ower.number}`);
+              // console.log(box.dues[i].pair, `${ower.number}:${payer.number}`);
               if (box.dues[i].pair === `${payer.number}:${ower.number}`) index = i;
               else if (box.dues[i].pair === `${ower.number}:${payer.number}`) {
                 index = i;
                 direction = -1;
               }
 
-            if (index === -1) continue;
+            if (index === -1) {
+              console.log('Pairing not found.');
+              continue;
+            }
             
             var dues = [...box.dues];
             dues[index] = { pair: box.dues[index].pair, amount: (box.dues[index].amount + (amount * direction)) };
@@ -195,7 +210,6 @@ router.post('/', async (req, res) => {
             transaction.raw = content;
             transaction.text = text;
             await transaction.save();
-            console.log(4)
             }
           }
           return;
