@@ -142,7 +142,7 @@ router.post('/', async (req, res) => {
      var box;
      var ower;
      var caller;
-     if (/\s/.test(content) && content.includes('/')) {
+     if (!(/\s/.test(content)) && content.includes('/')) {
         var rawSplit = content.split('/');
         var amount = (parseFloat(rawSplit[0]) / parseFloat(rawSplit[1])).toFixed(2);
 
