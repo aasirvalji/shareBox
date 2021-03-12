@@ -136,6 +136,13 @@ router.post('/', async (req, res) => {
     else if (!prefix.includes(command)) {
      // check for transactions here
      var splitContent = content.split(' ');
+     
+     var amount;
+     var payer;
+     var box;
+     var ower;
+     var caller;
+
       // 2 args transaction - To name:amount
       if (splitContent.length === 2) {
         var amount = parseFloat(splitContent[1]).toFixed(2);
@@ -193,6 +200,11 @@ router.post('/', async (req, res) => {
         }
       }
       else return;
+
+      console.log('PAYER: ');
+      console.log(payer);
+      console.log('OWER: ');
+      console.log(ower);
 
         var direction = 1;
         var pair = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
