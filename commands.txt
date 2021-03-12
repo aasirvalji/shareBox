@@ -5,5 +5,5 @@ join <code> - Join a box using the provided unique short code.
 
 // Box commands
 <amount> - The amount to be split amongst all sharers in your box.
-<ower> <amount> - The amount the ower has to spend you.
+<ower> <amount> - The amount the ower has to send you.
 <payer> <ower> <amount> - The amount the ower has to send the payer.

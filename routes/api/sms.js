@@ -6,13 +6,16 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const prefix = ['setup', 'init', 'join'];
 
-function genCode() {
+// generate 5 character code
+function genCode() { 
   return Math.random().toString(36).substr(2, 5);
 }
 
+// text callback route
 router.post('/', async (req, res) => {
     const twiml = new MessagingResponse();
 
+    // log incoming text
     console.log(`Incoming message from ${req.body.From}: ${req.body.Body}`);
     console.log('Body content: ');
     console.log(req.body)
@@ -20,10 +23,12 @@ router.post('/', async (req, res) => {
     var content = req.body.Body.trim();
     console.log('Content received: ' + content);
      
+    // format incoming text body
     var [command, ...args] = content.split(' ');
     console.log(command, args);
     command = command.toLowerCase();
   
+    // setup users account in db
     if (prefix.includes(command) && command === 'init') {
       if (args.length !== 1) {
         twiml.message(`Please enter your nickname with the init command.`);
@@ -47,6 +52,8 @@ router.post('/', async (req, res) => {
       res.writeHead(200, {'Content-Type': 'text/xml'});
       return res.end(twiml.toString());
     }
+
+    // create box
     else if (prefix.includes(command) && command === 'setup') {
       if (args.length !== 1) {
         twiml.message(`Please enter your box name with the init command.`);
@@ -54,13 +61,11 @@ router.post('/', async (req, res) => {
         return res.end(twiml.toString());
       }
 
-      // get vals
       var name = args[0].toLowerCase();
       var number = req.body.From;
       var code = genCode();
       var isUnique = false;
 
-      // check user
       var user = await User.findOne({ number });
       if (!user) {
         twiml.message(`It looks like you haven't setup with shareBox yet.`);
@@ -73,28 +78,25 @@ router.post('/', async (req, res) => {
         return res.end(twiml.toString());
       }
 
-      // generate a unique code
+      // keep generating short code until one is found that hasn't been used.
       while(!isUnique || !code) {
          let boxExists = await Box.findOne({ code });
          if (!boxExists) isUnique = true;
          else code = genCode();
       }
   
-      // create box
       var box = await Box.create({ name, code, dues: [] });
 
-      // update user document
       user.box = box.code;
       user.isAdmin = true;
       await user.save();
 
-      // return text back to user here
       twiml.message(`Your box has been created (${name}). Send this code to your friends so they can join your room: ${code}`);
       res.writeHead(200, {'Content-Type': 'text/xml'});
       return res.end(twiml.toString());
     }
+    // join an exisiting room using a short code
     else if (prefix.includes(command) && command === 'join') {
-      // join existing room, create user document and attach to room
       var code = args[0];
       var number = req.body.From;
 
@@ -105,9 +107,6 @@ router.post('/', async (req, res) => {
         return res.end(twiml.toString());
       }
       
-      // if admin, return
-
-      // create nodes from everyone that already exists to this new user
       var user = await User.findOne({ number });
       if (!user) {
         twiml.message("You haven't signed up yet.");
@@ -115,7 +114,13 @@ router.post('/', async (req, res) => {
         return res.end(twiml.toString());
       }
 
-      // generate new due pairings
+      if (user.box && user.box === code) {
+        twiml.message("You're already apart of this box.");
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      // find existing users in box and generate new due pairings with them
       var users = await User.find({ box: code });
       if (users.length === 0) {
         twiml.message('It looks like no other users have joined your box yet.');
@@ -134,13 +139,39 @@ router.post('/', async (req, res) => {
       user.box = box.code;
       await user.save();
 
-      // return success message back to user
       twiml.message(`You've successfully joined ${box.name}.`);
       res.writeHead(200, {'Content-Type': 'text/xml'});
       return res.end(twiml.toString());
     }
+    else if (prefix.includes(command) && command === 'users') {
+      var caller = await User.findOne({ number: req.body.From });
+      if (!caller) {
+        twiml.message(`It seems like you haven't setup with shareBox yet.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
+      var box = await Box.findOne({ code: caller.box });
+      if (!box) {
+        twiml.message(`It looks like you're not in a box yet.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+  
+      var users = await User.find({ box: box.code });
+      
+      var str = '';
+      for (var u of users) {
+        str = `${str}- ${u.name}\n`
+      }
+
+      twiml.message(str);
+      res.writeHead(200, {'Content-Type': 'text/xml'});
+      return res.end(twiml.toString());
+    }
+
+    // checking for valid transactions
     else if (!prefix.includes(command)) {
-     // check for transactions here
      var splitContent = content.split(' ');
      
      var amount;
@@ -148,7 +179,9 @@ router.post('/', async (req, res) => {
      var box;
      var ower;
      var caller;
-     if (!(/\s/.test(content)) && /^\d+$/.test(content)) { // just a number
+
+     // if only an amount was provided
+     if (!(/\s/.test(content)) && /^\d+$/.test(content)) {
         var rawSplit = content.split('/');
 
         var payer = await User.findOne({ number: req.body.From });
@@ -221,7 +254,8 @@ router.post('/', async (req, res) => {
         res.writeHead(200, {'Content-Type': 'text/xml'});
         return res.end(twiml.toString());
      }
-      // 2 args transaction - To name:amount
+
+      // An owers name and amount was passed
       else if (splitContent.length === 2) {
         var amount = parseFloat(splitContent[1]).toFixed(2);
     
@@ -246,6 +280,8 @@ router.post('/', async (req, res) => {
           return res.end(twiml.toString());
         }
       }
+
+      // a payer, a ower and an amount was passed (caller, payer, and ower must all be apart of the same room)
       else if (splitContent.length === 3){
         var amount = parseFloat(splitContent[2]).toFixed(2);
 
