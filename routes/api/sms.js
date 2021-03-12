@@ -214,7 +214,7 @@ router.post('/', async (req, res) => {
         return res.end(twiml.toString());
       }
 
-      var box = await Box.findOne({ code: payer.box });
+      var box = await Box.findOne({ code: caller.box });
       if (!box) {
         twiml.message(`It looks like you're not in a box yet.`);
         res.writeHead(200, {'Content-Type': 'text/xml'});
