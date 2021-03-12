@@ -95,6 +95,7 @@ router.post('/', async (req, res) => {
       res.writeHead(200, {'Content-Type': 'text/xml'});
       return res.end(twiml.toString());
     }
+
     // join an exisiting room using a short code
     else if (prefix.includes(command) && command === 'join') {
       var code = args[0];
@@ -249,7 +250,6 @@ router.post('/', async (req, res) => {
       res.writeHead(200, {'Content-Type': 'text/xml'});
       return res.end(twiml.toString());
     }
-
 
     // check how much is owed/dued by others in your box
     else if (prefix.includes(command) && command === 'owe') {
