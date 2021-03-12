@@ -212,7 +212,7 @@ router.post('/', async (req, res) => {
           pair = box.dues.findIndex((d) => d.pair === `${ower.number}:${payer.number}`);
           direction = -1;
         }
-        if (!pair || pair === -1) {
+        else if (!pair || pair === -1) {
           twiml.message(`Something went wrong. Please try again later.`);
           res.writeHead(200, {'Content-Type': 'text/xml'});
           return res.end(twiml.toString());
