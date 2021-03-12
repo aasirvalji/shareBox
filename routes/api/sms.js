@@ -4,7 +4,7 @@ const Transaction = require('../../models/Transaction');
 const router = require('express').Router();
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
-const prefix = ['setup', 'init', 'join', 'users'];
+const prefix = ['setup', 'init', 'join', 'users', 'clear'];
 
 // generate 5 character code
 function genCode() { 
