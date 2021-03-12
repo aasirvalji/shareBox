@@ -99,6 +99,8 @@ router.post('/', async (req, res) => {
         return res.end(twiml.toString());
       }
 
+      // if admin, return
+
       // create nodes from everyone that already exists to this new user
       var user = await User.findOne({ number });
       if (!user) {
@@ -108,7 +110,7 @@ router.post('/', async (req, res) => {
       }
 
       // generate new due pairings
-      var users = await User.find({ code });
+      var users = await User.find({ box: code });
       if (users.length === 0) {
         twiml.message('It looks like no other users have joined your box yet.');
         res.writeHead(200, {'Content-Type': 'text/xml'});
