@@ -14,7 +14,8 @@ router.post('/', async (req, res) => {
     const twiml = new MessagingResponse();
 
     console.log(`Incoming message from ${req.body.From}: ${req.body.Body}`);
-    console.log('Body content' + req.body);
+    console.log('Body content: ');
+    console.log(req.body)
   
     var content = req.body.Body.trim();
     console.log('Content received: ' + content);
