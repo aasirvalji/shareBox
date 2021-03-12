@@ -172,15 +172,16 @@ router.post('/', async (req, res) => {
             if (ower.number === payer.number) continue; // skip over themself
             console.log(1)
             var direction = 1;
-            var index = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
-            if (index === -1) {
-              index = box.dues.findIndex((d) => d.pair === `${ower.number}:${payer.number}`);
-              direction = -1;
-            }
-            if (index === -1) {
-              console.log('Skipping');
-              continue;
-            }
+            var pair = -1
+            for (var i = 0; i < box.dues.length; i++){  
+              console.log(box.dues[i].pair, `${payer.number}:${ower.number}`);
+              console.log(box.dues[i].pair, `${ower.number}:${payer.number}`);
+              if (box.dues[i].pair === `${payer.number}:${ower.number}`) pair = i;
+              else if (box.dues[i].pair === `${ower.number}:${payer.number}`) {
+                pair = i;
+                direction = -1;
+              }
+            
             console.log(2)
             var dues = [...box.dues];
             dues[index] = { pair: box.dues[index].pair, amount: (box.dues[index].amount + (amount * direction)) };
@@ -194,6 +195,7 @@ router.post('/', async (req, res) => {
             transaction.text = text;
             await transaction.save();
             console.log(4)
+            }
           }
           return;
         }
