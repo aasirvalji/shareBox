@@ -217,6 +217,7 @@ router.post('/', async (req, res) => {
           res.writeHead(200, {'Content-Type': 'text/xml'});
           return res.end(twiml.toString());
         }
+        console.log(pair)
         var dues = [...box.dues];
         dues[pair] = { pair: box.dues[pair].name, amount: ((box.dues[pair].amount + amount) * direction) };
         box.dues = dues;
