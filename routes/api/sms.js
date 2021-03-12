@@ -211,8 +211,8 @@ router.post('/', async (req, res) => {
 
         var pair = -1
         for (var i = 0; i < box.dues.length; i++){  
-          console.log(box.dues[i]);
-          console.log(box.dues[i].pair);
+          console.log(box.dues[i].pair, `${payer.number}:${ower.number}`);
+          console.log(box.dues[i].pair, `${ower.number}:${payer.number}`);
           if (box.dues[i].pair === `${payer.number}:${ower.number}`) {
             pair = i;
             break;
