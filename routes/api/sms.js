@@ -169,6 +169,7 @@ router.post('/', async (req, res) => {
 
         async function recordTransaction() {
           for (var ower of owers) {
+            console.log(ower, payer);
             if (ower.number === payer.number) continue; // skip over themself
             console.log(1)
             var direction = 1;
