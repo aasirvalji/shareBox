@@ -227,7 +227,7 @@ router.post('/', async (req, res) => {
         if (pair === -1) return console.log('Not found.');
 
         var dues = [...box.dues];
-        dues[pair] = { pair: box.dues[pair].name, amount: ((box.dues[pair].amount + amount) * direction) };
+        dues[pair] = { pair: box.dues[pair].pair, amount: ((box.dues[pair].amount + amount) * direction) };
         box.dues = dues;
         await box.save();
 
