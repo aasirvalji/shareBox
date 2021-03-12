@@ -210,7 +210,9 @@ router.post('/', async (req, res) => {
         var direction = 1;
 
         var pair = -1
-        for (var i = 0; i < box.dues.length; i++){
+        for (var i = 0; i < box.dues.length; i++){  
+          console.log(box.dues[i]);
+          console.log(box.dues[i].pair);
           if (box.dues[i].pair === `${payer.number}:${ower.number}`) {
             pair = i;
             break;
