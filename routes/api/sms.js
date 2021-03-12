@@ -170,7 +170,7 @@ router.post('/', async (req, res) => {
         async function recordTransaction() {
           for (var ower of owers) {
             if (ower.number === payer.number) continue; // skip over themself
-
+            console.log(1)
             var direction = 1;
             var index = box.dues.findIndex((d) => d.pair === `${payer.number}:${ower.number}`);
             if (index === -1) {
@@ -181,18 +181,19 @@ router.post('/', async (req, res) => {
               console.log('Skipping');
               continue;
             }
-
+            console.log(2)
             var dues = [...box.dues];
             dues[index] = { pair: box.dues[index].pair, amount: (box.dues[index].amount + (amount * direction)) };
             box.dues = dues;
             await box.save();
-
+            console.log(3)
             var transaction = await Transaction.create({ box: box.code });
 
             var text = `${payer.name} payed ${amount} for ${ower.name} on ${new Date(transaction.createdAt).toLocaleString()}`;
             transaction.raw = content;
             transaction.text = text;
             await transaction.save();
+            console.log(4)
           }
           return;
         }
