@@ -61,6 +61,11 @@ router.post('/', async (req, res) => {
         res.writeHead(200, {'Content-Type': 'text/xml'});
         return res.end(twiml.toString());
       }
+      else if (user.box) {
+        twiml.message(`It looks like you're already apart of a box.`);
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
 
       // generate a unique code
       while(!isUnique || !code) {
@@ -87,6 +92,13 @@ router.post('/', async (req, res) => {
       var code = args[0];
       var number = req.body.From;
 
+      var box = await Box.findOne({ code });
+      if (!box) {
+        twiml.message("This box doesn't exist.");
+        res.writeHead(200, {'Content-Type': 'text/xml'});
+        return res.end(twiml.toString());
+      }
+
       // create nodes from everyone that already exists to this new user
       var user = await User.findOne({ number });
       if (!user) {
@@ -106,13 +118,6 @@ router.post('/', async (req, res) => {
       var newDues = []
       for (var u of users) {
         newDues.push({ pair: `${u.number}:${user.number}`, amount: 0 });
-      }
-
-      var box = await Box.findOne({ code });
-      if (!box) {
-        twiml.message("Something went wrong locating your box. Please try again later.");
-        res.writeHead(200, {'Content-Type': 'text/xml'});
-        return res.end(twiml.toString());
       }
 
       box.dues = [...box.dues, ...newDues];
